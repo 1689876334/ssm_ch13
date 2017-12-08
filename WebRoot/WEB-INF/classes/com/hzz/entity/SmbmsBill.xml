@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hzz.dao.SmbmsBillDao">
+	<!-- 商品名称模糊查询和供应商id是否付款 -->
+	<select id="getSmbmsBillProductName" resultMap="smbmsList">
+		SELECT b.*,p.proName FROM smbms_bill b INNER JOIN smbms_provider p ON b.providerId=p.id
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="productName != null and productName!= ''">
+				 and b.productName like concat('%',#{productName},'%') 
+			</if>
+			<if test="isPayment != null">
+				AND b.providerId=3
+			</if>
+			
+			<if test="isPayment != null">
+				 AND b.isPayment=2
+			</if>
+		</trim>
+	</select>
+	<!-- 添加 -->
+	<insert id="addSmbmsBill" parameterType="SmbmsBill">
+		INSERT INTO smbms_bill
+		(
+		`billCode`,
+		`productName`,
+		`productDesc` ,
+		`productUnit` ,
+		`productCount` ,
+		`totalPrice` ,
+		`isPayment` ,
+		`createdBy`,
+		`creationDate`,
+		`modifyDate`,
+		`modifyBy`,
+		`idPicPath`,
+		`workPicPath`
+		)
+		VALUES (
+		#{proCode},
+		#{proName},
+		#{proDesc},
+		#{proContact},
+		#{proPhone},
+		#{proAddress},
+		#{proFax},
+		#{createdBy},
+		#{creationDate},
+		#{modifyDate},
+		#{modifyBy},
+		#{idPicPath},
+		#{workPicPath}
+		);
+
+	</insert>
+    <!-- 修改 -->
+	<update id="updateSmbmsBill" parameterType="SmbmsBill">
+		UPDATE smbms_bill
+		<trim prefix="set" suffixOverrides="," suffix="where id=#{id}">
+			<if test="billCode != null">billCode = #{billCode},</if>
+			<if test="productName != null">productName = #{productName},</if>
+			<if test="productDesc != null">productDesc = #{productDesc},</if>
+			<if test="productUnit != null">productUnit = #{productUnit},</if>
+			<if test="productCount != null">productCount = #{productCount},</if>
+			<if test="totalPrice != null">totalPrice = #{totalPrice},</if>
+			<if test="isPayment != null">isPayment = #{isPayment},</if>
+			<if test="createdBy != null">createdBy = #{createdBy},</if>
+			<if test="creationDate != null">creationDate = #{creatcreationDateionDate},</if>
+			<if test="modifyBy != null">modifyBy = #{modifyBy},</if>
+			<if test="modifyDate != null">modifyDate = #{modifyDate},</if>
+			<if test="providerId != null">providerId = #{providerId},</if>
+		</trim>
+	</update>
+    <!-- 删除 -->
+	<delete id="deleteSmbmsBillById" parameterType="int">
+		delete from
+		smbms_bill where id=#{id}
+	</delete>
+
+	<!-- 根据供应商编码和名称计算总记录数 -->
+	<select id="getCount" resultType="int">
+		SELECT COUNT(1) FROM smbms_provider
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="proCode != null and proCode !=''">and proCode like '%${proCode}%'</if>
+			<if test="proName != null and proName !=''">and proName like concat('%',#{proName},'%')</if>
+		</trim>
+	</select>
+
+
+	<!-- 根据供应商编码和名称分页 -->
+	<select id="getSmbmsBillList" resultType="SmbmsBill">
+		SELECT * FROM smbms_bill
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="billCode  != null and billCode !=''">and billCode like '%${billCode}%'</if>
+			<if test="productName != null and productName !=''">and productName like concat('%',#{productName},'%')</if>
+		</trim>
+		LIMIT #{currentNo},#{pageSize}
+	</select>
+	<resultMap type="SmbmsBill" id="smbmsList">
+		<result property="billCode" column="billCode"/>
+		<result property="productName" column="productName"/>
+		<result property="totalPrice" column="totalPrice"/>
+		<result property="isPayment" column="isPayment"/>
+		<result property="creationDate" column="creationDate"/>
+		<association property="provider" javaType="SmbmsProvider" resultMap="providerResult" />
+	
+	</resultMap>
+	<resultMap type="SmbmsProvider" id="providerResult">
+		<result property="id" column="id"/>
+		<result property="proCode" column="proCode"/>
+		<result property="proDesc" column="proDesc"/>
+		<result property="proContact" column="proContact"/>
+		<result property="proPhone" column="proPhone"/>
+	</resultMap>
+	
+</mapper>

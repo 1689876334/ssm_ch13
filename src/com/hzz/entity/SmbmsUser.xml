@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper  
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hzz.dao.SmbmsUserDao">
+	<!-- 用户登录 -->
+	<select id="login" parameterType="SmbmsUser" resultType="SmbmsUser">
+		SELECT * FROM smbms_user WHERE userCode=#{userCode} AND userPassword=#{userPassword}
+	</select>
+	
+	<!-- 查询用户列表 -->
+	<select id="getSmbmsUsersList" resultType="SmbmsUser">
+		select * from smbms_user
+	</select>
+	
+	<!-- 添加用户 -->
+	<insert id="addSmbmsUser" parameterType="SmbmsUser">
+			INSERT INTO `smbms`.`smbms_user`
+            (
+             `userCode`,
+             `userName`,
+             `userPassword`,
+             `gender`,
+             `birthday`,
+             `phone`,
+             `address`,
+             `userRole`,
+             `createdBy`,
+             `creationDate`,
+             `modifyBy`,
+             `modifyDate`,
+             `photoPath`)
+VALUES (
+        #{userCode},
+        #{userName},
+        #{userPassword},
+        #{gender},
+        #{birthday},
+        #{phone},
+        #{address},
+        #{userRole},
+        #{createdBy},
+        #{creationDate},
+        #{modifyBy},
+        #{modifyDate},
+        #{photoPath});
+	</insert>
+	
+	<!-- 根据用户名称查询用户列表 -->
+	<select id="getSmbmsUserByUserName" parameterType="string" resultType="SmbmsUser">
+		select * from smbms_user where userName like concat ('%',#{userName},'%')
+	</select>
+	
+	<!-- 根据用户名和角色查询 -->
+	<select id="getSmbmsUserByUserNameAndUserRole" resultMap="userRoleResult" parameterType="SmbmsUser">
+		SELECT u.*,r.id as r_id,r.roleCode,r.roleName FROM smbms_user u INNER JOIN smbms_role r ON u.userRole=r.id
+		 where u.userName like '%${userName}%' and u.userRole=#{userRole}
+	</select>
+	
+	<resultMap type="SmbmsUser" id="userRoleResult">
+		<id property="id" column="id"/>
+		<result property="userCode" column="userCode"/>
+		<result property="userName" column="userName"/>
+		<result property="userRole" column="userRole"/>
+		<association property="role" javaType="SmbmsRole" resultMap="roleResult"/>
+	</resultMap>
+	
+	<resultMap type="SmbmsRole" id="roleResult">
+		<id property="id" column="r_id"/>
+		<result property="roleCode" column="roleCode"/>
+		<result property="roleName" column="roleName"/>
+	</resultMap>
+	
+	<!-- 修改用户 -->
+	<update id="updateSmbmsUser" parameterType="SmbmsUser">
+		UPDATE smbms_user
+		<trim prefix="set" suffixOverrides="," suffix="where id=#{id}">
+			<if test="userCode!=null"> userCode = #{userCode},</if>
+			<if test="userName!=null"> userName = #{userName},</if>
+			<if test="userPassword!=null"> userPassword = #{userPassword},</if>
+			<if test="gender!=null"> gender = #{gender},</if>
+			<if test="birthday!=null"> birthday = #{birthday},</if>
+			<if test="phone!=null"> phone = #{phone},</if>
+			<if test="address!=null">address = #{address},</if>
+			<if test="userRole!=null">userRole = #{userRole},</if>
+			<if test="createdBy!=null"> createdBy = #{createdBy},</if>
+			<if test="creationDate!=null">creationDate = #{creationDate},</if>
+			<if test="modifyBy!=null">modifyBy = #{modifyBy},</if>
+			<if test="modifyDate!=null">modifyDate = #{modifyDate}</if>
+		</trim>
+	</update>
+	
+	<!-- 删除用户信息 -->
+	<delete id="deleteUserById" parameterType="int">
+		delete from smbms_user where id=#{id}
+	</delete>
+	
+	<select id="getCount" resultType="int">
+		SELECT count(1) FROM smbms_user u INNER JOIN smbms_role r ON u.userRole=r.id
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="userName !=null and userName != ''">and userName like concat('%',#{userName},'%')</if>
+			<if test="userRole !=null and userRole != 0">and userRole =#{userRole}</if>
+		</trim>
+	</select>
+	
+	<select id="getSmbmsUserPage" resultType="SmbmsUser">
+		SELECT u.*,r.roleCode,r.roleName FROM smbms_user u INNER JOIN smbms_role r ON u.userRole=r.id
+		<trim prefix="where" prefixOverrides="and | or">
+			<if test="userName !=null and userName != ''">and userName like concat('%',#{userName},'%')</if>
+			<if test="userRole !=null and userRole != 0">and userRole =#{userRole}</if>
+		</trim>
+		LIMIT #{currentNo},#{pageSize}
+	</select>
+	
+	<select id="getUsers" parameterType="SmbmsUser" resultType="SmbmsUser">
+		SELECT u.*,r.roleName FROM smbms_user u INNER JOIN smbms_role r ON u.userRole=r.id 
+		<trim prefix="where" prefixOverrides="and | or">
+				<if test="id != null and id != ''">and u.id=#{id}</if>
+		</trim>
+
+	</select>
+	
+</mapper>
